@@ -3,6 +3,9 @@ __pycache__/
 */__pycache__/
 **/__pycache__/
 
+# Ignore fake database 
+fast-api-learning/app/models/fake_database.json
+
 # Byte-compiled / optimized / DLL files
 *.py[cod]
 *$py.class
