@@ -1,50 +1,22 @@
-from fastapi import APIRouter, Path
+from fastapi import APIRouter, Path, Body
 from typing import Annotated
-
+from schemas.users import UserIn, UserOut
 
 router = APIRouter()
 
-fake_database = [
-    {
-        "user_id": 1,
-        "name": "Ava Reynolds",
-        "email": "ava.reynolds@example.com",
-        "age": 29,
-        "is_active": True
-    },
-    {
-        "user_id": 2,
-        "name": "Liam Carter",
-        "email": "liam.carter@example.com",
-        "age": 34,
-        "is_active": False
-    },
-    {
-        "user_id": 3,
-        "name": "Sophia Martinez",
-        "email": "sophia.martinez@example.com",
-       "age": 27,
-        "is_active": True
-    },
-    {
-        "user_id": 4,
-        "name": "Noah Bennett",
-        "email": "noah.bennett@example.com",
-        "age": 41,
-        "is_active": True
-    },
-    {
-        "user_id": 5,
-        "name": "Isabella Chen",
-        "email": "isabella.chen@example.com",
-        "age": 22,
-        "is_active": False
-    }
-]
+fake_database = {}
 
 
 
-@router.get("/user/{user_id}", tags=["user"], summary="Get user information")
-async def get_user_information(user_id: Annotated[int, Path(title="ID of the user to get", gt=-1,le=4)]):
-    return fake_database[user_id]
+
+
+@router.post("/user/create-user", tags=["user"], summary="Create a user record in the database",response_model=UserOut)
+async def create_user(user_info: UserIn):
+    data = user_info.model_dump()
+    email_address = data.pop("email_address")
+
+    fake_database[email_address] = data
+
+    return user_info
+
     
