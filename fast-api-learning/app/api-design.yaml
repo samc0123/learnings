@@ -1,0 +1,140 @@
+openapi: 3.0.4
+info:
+  title: Sample POS 
+  description: |-
+    Very basic implementation of a POS system for learning purposes of FastAPI framework 
+  version: 0.0.1
+externalDocs:
+  description: Find out more about Swagger
+  url: https://swagger.io
+tags:
+  - name: transactions
+    description: Everything about transactions that occur between users and products
+  - name: products
+    description: Information about all the products in the inventory
+  - name: user
+    description: Operations about users in POS system
+paths:
+  /user/create-user:
+    post:
+      tags:
+        - user
+      summary: Create a user record in the database
+      operationId: create_user_user_create_user_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserIn'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+components:
+  schemas:
+    HTTPValidationError:
+      title: HTTPValidationError
+      type: object
+      properties:
+        detail:
+          title: Detail
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+
+    ValidationError:
+      title: ValidationError
+      type: object
+      required:
+        - loc
+        - msg
+        - type
+      properties:
+        loc:
+          title: Location
+          type: array
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string
+
+    UserIn:
+      title: UserIn
+      type: object
+      required:
+        - first_name
+        - last_name
+        - email_address
+        - password
+      properties:
+        first_name:
+          title: First Name
+          type: string
+          minLength: 2
+          maxLength: 100
+        last_name:
+          title: Last Name
+          type: string
+          minLength: 2
+          maxLength: 100
+        display_name:
+          title: Display Name
+          anyOf:
+            - type: string
+        email_address:
+          title: Email Address
+          type: string
+          format: email
+        password:
+          title: Password
+          type: string
+          minLength: 12
+          maxLength: 100
+
+    UserOut:
+      title: UserOut
+      type: object
+      required:
+        - first_name
+        - last_name
+        - email_address
+      properties:
+        first_name:
+          title: First Name
+          type: string
+          minLength: 2
+          maxLength: 100
+        last_name:
+          title: Last Name
+          type: string
+          minLength: 2
+          maxLength: 100
+        display_name:
+          title: Display Name
+          anyOf:
+            - type: string
+        email_address:
+          title: Email Address
+          type: string
+          format: email
+        message:
+          title: Message
+          type: string
+          default: User created successfully
