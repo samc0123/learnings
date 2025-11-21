@@ -40,6 +40,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /user/update/{email}:
+    put:
+      parameters:
+      - in: path
+        name: email
+        schema:
+          type: string
+        required: true
+        description: Email ID of user to get 
+      tags:
+        - user 
+      summary: Update User Information 
+      requestBody:
+        required: true
+        content:
+          application/json:
+          
 
 components:
   schemas:
