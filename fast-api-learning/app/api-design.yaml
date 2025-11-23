@@ -28,8 +28,8 @@ paths:
             schema:
               $ref: '#/components/schemas/UserIn'
       responses:
-        '200':
-          description: Successful Response
+        '201':
+          description: User Object Created
           content:
             application/json:
               schema:
@@ -52,11 +52,58 @@ paths:
       tags:
         - user 
       summary: Update User Information 
+      description: Update user information via email. If email is updated, remove old record and create new one 
       requestBody:
         required: true
         content:
           application/json:
-          
+            schema:
+              $ref: '#/components/schemas/UserIn'
+      responses:
+        '200':
+          description: User Object Updated Successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+        '201':
+          description: User Object Created Successfully 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOut'
+  /user/remove/{email}:
+    delete:
+      parameters:
+      - in: path
+        name: email
+        schema:
+          type: string
+        required: true
+        description: Email ID of user to get 
+      tags:
+        - user 
+      summary: Remove a User from the system
+      description: Remove user from system via email id. 
+      responses:
+        '204':
+          description: User Object Deleted Successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
 
 components:
   schemas:
