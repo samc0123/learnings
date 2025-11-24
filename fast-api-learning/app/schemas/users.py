@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from fastapi import HTTPException, status
-import uuid
+
 
 class UserBase(BaseModel):
     first_name: str = Field(max_length=100, min_length=2)
@@ -49,5 +49,4 @@ class UserIn(UserBase):
 
 class UserOut(UserBase):
     message: str = "User created successfully"
-
 
