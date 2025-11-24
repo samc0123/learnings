@@ -391,11 +391,9 @@ components:
       title: Product
       type: object
       required:
-        - id
         - display_name
         - product_description
         - unit_price
-        - quantity_in_stock
       properties:
         id:
           type: string
