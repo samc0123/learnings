@@ -85,8 +85,9 @@ paths:
         name: email
         schema:
           type: string
+          format: email
         required: true
-        description: Email ID of user to get 
+        description: Email ID of user to remove 
       tags:
         - user 
       summary: Remove a User from the system
@@ -104,7 +105,171 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-
+  /user/get/{email}:
+    get:
+      summary: Get User Information
+      description: Retrieve user information and confirm existence of a user 
+      parameters:
+      - in: path 
+        name: email
+        schema:
+          type: string 
+          format: email
+        required: true 
+        description: Email ID of the User to get
+      tags:
+        - user 
+      responses:
+        '200': 
+          description: User Object Retrieved Successfully 
+          content:
+            appliation/json:
+              schema: 
+                $ref: '#/components/schemas/UserOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+               schema:
+                 $ref: '#/components/schemas/HTTPValidationError'
+  /transactions/get/{id}:
+    get:
+      summary: Get transaction information 
+      description: Get information about transaction, including the item & cost
+      parameters:
+      - in: path 
+        name: id
+        schema:
+          type: string 
+          format: uuid
+        required: true
+        description: Transaction ID to get from the database 
+      tags:
+        - transactions
+      responses:
+        '200':
+          description: Transaction Information Retrieved Successfully 
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionOut'
+                
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+               schema:
+                 $ref: '#/components/schemas/HTTPValidationError'   
+  /transactions/create:
+    post:
+      tags:
+        - transactions 
+      summary: Create transaction 
+      description: Create a transaction, validate user/product availability. Return cost to terminal 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionIn'
+      responses:
+        '201':
+          description: Transaction created successfully 
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/TransactionOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+               schema:
+                 $ref: '#/components/schemas/HTTPValidationError' 
+  /products/create:
+    post:
+      tags:
+        - products
+      summary: Create a product entry 
+      description: Create a product, including the name, amount in stock, price, etc.
+      requestBody:
+        required: true 
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+      responses:
+        '201':
+          description: Product successfully created
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Product'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+               schema:
+                 $ref: '#/components/schemas/HTTPValidationError' 
+  /products/get/{id}:
+    get:
+      tags:
+        - products
+      summary: Get Product Information
+      description: Retrieve price, quantity in stock, and other info related to products 
+      parameters:
+      - in: path
+        name: id
+        schema: 
+          type: string 
+          format: uuid
+        required: true 
+        description: ID of the product to get from database 
+      responses: 
+        '200':
+          description: Product information successfully retrieved 
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Product'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+               schema:
+                 $ref: '#/components/schemas/HTTPValidationError' 
+  /products/update-inventory/{id}:
+    put:
+      tags:
+        - products
+      summary: Update product stock
+      description: Add or remove inventory from the product. DOES NOT create a product if `id` is invalid
+      parameters:
+      - in: path
+        name: id
+        schema: 
+          type: string 
+          format: uuid
+        required: true 
+        description: ID of the product to get from database 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdate'
+      responses: 
+        '200':
+          description: Product Inventory Updated Successfully 
+          content: 
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+               schema:
+                 $ref: '#/components/schemas/HTTPValidationError' 
 components:
   schemas:
     HTTPValidationError:
@@ -171,7 +336,104 @@ components:
           type: string
           minLength: 12
           maxLength: 100
-
+          format: password
+          
+    TransactionIn:
+      title: TransactionIn
+      type: object
+      required:
+        - email
+        - product_id
+        - quantity
+      properties:
+        email:
+          title: Email Address
+          type: string
+          format: email
+        product_id:
+          title: ID of Product
+          type: string 
+          minLength: 1
+          format: uuid
+        quantity:
+          title: Purchase Quantity
+          type: integer
+          minimum: 1
+          
+    TransactionOut:
+      title: TransactionOut
+      type: object
+      required:
+        - transaction_id
+        - price 
+        - quantity
+        - product_name 
+      properties:
+        transaction_id:
+          title: Transaction ID
+          type: string
+          minLength: 1
+          format: uuid
+        price:
+          title: Price of Goods 
+          type: number
+          format: float
+          minimum: 0.01
+        quantity:
+          title: Quantity purchased
+          type: integer 
+          minimum: 1
+        product_name:
+          title: Display Name of the product 
+          type: string 
+          minimum: 1 
+    Product: 
+      title: Product
+      type: object
+      required:
+        - id
+        - display_name
+        - product_description
+        - unit_price
+        - quantity_in_stock
+      properties:
+        id:
+          type: string
+          format: uuid
+          minLength: 1
+          description: Unique product identifier
+        display_name:
+          type: string
+          minLength: 1
+          description: Human-friendly product name
+        product_description:
+          type: string
+          minLength: 1
+          description: Detailed description of the product
+        unit_price:
+          type: number
+          format: float
+          minimum: 0.01
+          description: Price per unit of the product (must be ≥ 0.01)
+        quantity_in_stock:
+          type: integer
+          minimum: 0
+          description: How many units are currently available
+          
+    ProductUpdate:
+      title: ProductUpdate
+      type: object
+      required:
+        - inventory_to_add
+        - inventory_to_remove
+      properties:
+        inventory_to_add:
+          type: integer
+          minimum: 1
+        inventory_to_remove:
+          type: integer
+          minimum: 1
+    
     UserOut:
       title: UserOut
       type: object
