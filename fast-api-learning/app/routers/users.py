@@ -7,7 +7,7 @@ import os
 
 router = APIRouter()
 
-fake_database_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'models', 'fake_database.json'))
+fake_database_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'models', 'fake_database_users.json'))
 
 
 
