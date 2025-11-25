@@ -1,6 +1,6 @@
 from typing import Annotated, Optional
 from decimal import Decimal
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 import uuid
 import json
 import os
@@ -26,14 +26,35 @@ class Product(BaseModel):
         }
     }
 
-class ProductUpdate:
+class ProductUpdate(BaseModel):
     inventory_to_add: Annotated[Optional[int], Field(gt=0, le=1*10**4 - 1, description="Amount of product to add to inventory")]
     inventory_to_remove: Annotated[Optional[int], Field(gt=0, le=1*10**4 - 1, description="Amount of product to remove from inventory.")]
     product_id: Annotated[uuid.UUID, Field(description="`id` value of the product")]
 
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                   "inventory_to_add": 7,
+                   "product_id": "e9b1f3c7-04bb-4e0f-9dff-315beffb2a36"
+                }, 
+                {
+                   "inventory_to_remove": 12,
+                   "product_id": "d5b7a1fb-3c8a-4eab-8cd2-7f6c9b0c6f91"
+                }, 
+                {
+                    "inventory_to_add": 15, 
+                    "inventory_to_remove": 18, 
+                    "product_id": "4c3f0b8e-1b6c-4c1b-8a6e-2f0e5e4b9d77"
+                }
+                
+            ]
+        }
+    }
+
     #TODO: Get this method to return correctly
     @classmethod
-    def check_inventory(product_id:str, val:int, operation:str):
+    def check_inventory(cls,product_id:str, val:int, operation:str):
         fake_database_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'models', 'fake_database_products.json'))
 
         try:
@@ -61,8 +82,14 @@ class ProductUpdate:
 
         
         
-    @field_validator("inventory_to_add")
-    def check_inventory(cls,v):
-        #TODO: return cls.check_inventory(pr) 
-        pass
+    @model_validator
+    def validate_inventory(self):
+        if self.inventory_to_add is not None:
+            return self.check_inventory(self.product_id,self.inventory_to_add,"add")
+        if self.inventory_to_remove is not None:
+            return self.check_inventory(self.product_id,self.inventory_to_remove,"remove")
+
+        return self
+    
+    
     
