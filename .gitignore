@@ -8,6 +8,8 @@ fast-api-learning/app/models/fake_database_users.json
 fast-api-learning/app/models/fake_database_transactions.json
 fast-api-learning/app/models/fake_database_products.json
 
+# Ignore Secrets 
+fast-api-learning/app/schemas/secrets.env
 # Byte-compiled / optimized / DLL files
 *.py[cod]
 *$py.class
