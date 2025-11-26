@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Path, Body
-from typing import Annotated
+from fastapi import APIRouter, Path, Body, HTTPException, status
+from typing import Annotated, Dict
 from schemas.users import UserIn, UserOut
 import json
 import os
@@ -9,8 +9,29 @@ router = APIRouter()
 
 fake_database_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'models', 'fake_database_users.json'))
 
+def get_database_information() -> Dict[str, Dict[str,str]]:
+    '''
+    Retrieve fake database information, helper method 
+    '''
+    
 
+    fake_database = {}
+    try:
+        with open(fake_database_path,'r') as f:
+            fake_database: dict = json.load(f)
+            return fake_database
+    except (FileNotFoundError, json.JSONDecodeError):
+        print('Database empty, initializing new database')
+        return fake_database
 
+def write_database_information(database_information:dict) -> None:
+    '''
+    Write back to the fake database, helper method
+    '''
+
+    with open(fake_database_path,'w') as f:
+        json.dump(database_information, f)
+    f.close()
 
 
 
@@ -20,21 +41,49 @@ async def create_user(user_info: UserIn):
     data = user_info.model_dump()
     email_address = data.pop("email_address")
 
-    try:
-        with open(fake_database_path,'r') as f:
-            fake_database: dict = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        fake_database = {}
-        
+    
+    fake_database = get_database_information()
     if email_address in fake_database:
         fake_database[email_address].update(data)
     else:
         fake_database[email_address] = data
-    with open(fake_database_path,'w') as f:
-        json.dump(fake_database, f)
-    f.close()
+    
+
+    write_database_information(database_information=fake_database)
     
 
     return user_info
 
+
+@router.put("/user/update/{email}", tags=["user"], summary="Update User Information",description="Update user information via email. If email is updated, remove old record and create new one", response_model=UserOut)
+async def update_user_information(user_info:UserIn, email:str):
+    # Step 0: Retrieve user information from fake database
+    fake_database = get_database_information()
+    current_user_info = fake_database.get(email) 
+    if current_user_info is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    # Case 1: Change in email address, means new record must be created
+    if user_info.email_address != email:
+        # Step 1: Remove existing record 
+        del fake_database[email]
+
+        data = user_info.model_dump()
+        new_email = data.pop("email_address")
+
+        fake_database[new_email] = data
+        write_database_information(fake_database)
+
+    # Case 2: Email is the same, then just update the data by removing the email address
+    else:
+        data = user_info.model_dump()
+        data.pop("email_address")
+
+        fake_database[email].update(data)
+        write_database_information(fake_database)
     
+    return user_info
+
+
+
+
