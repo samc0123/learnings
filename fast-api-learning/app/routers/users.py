@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Path, Body, HTTPException, status
+from fastapi import APIRouter, Path, Body, HTTPException, status, Response
 from typing import Annotated, Dict
 from schemas.users import UserIn, UserOut
 import json
@@ -63,27 +63,38 @@ async def update_user_information(user_info:UserIn, email:str):
     if current_user_info is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
+    data = user_info.model_dump()
+    new_email = data.pop("email_address")
+
     # Case 1: Change in email address, means new record must be created
     if user_info.email_address != email:
         # Step 1: Remove existing record 
         del fake_database[email]
 
-        data = user_info.model_dump()
-        new_email = data.pop("email_address")
 
         fake_database[new_email] = data
         write_database_information(fake_database)
 
     # Case 2: Email is the same, then just update the data by removing the email address
     else:
-        data = user_info.model_dump()
-        data.pop("email_address")
 
         fake_database[email].update(data)
         write_database_information(fake_database)
+    response = UserOut(**data, email_address=new_email, message="User Updated successfully")
+    return response
+
+@router.delete("/user/remove/{email}", tags=["user"], summary="Remove user record from system", description="Remove user via `email` identifier")
+async def remove_user(email:str):
+    # Step 0: Retrieve user information from fake database
+    fake_database = get_database_information()
     
-    return user_info
 
 
+    if fake_database.get(email) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    else:
+        del fake_database[email]
+    
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
