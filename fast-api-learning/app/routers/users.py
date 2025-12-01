@@ -39,7 +39,7 @@ def write_database_information(database_information:dict) -> None:
 @router.post("/user/create-user", tags=["user"], summary="Create a user record in the database",response_model=UserOut)
 async def create_user(user_info: UserIn):
     data = user_info.model_dump()
-    email_address = data.pop("email_address")
+    email_address = str(data.pop("email_address")).lower()
 
     
     fake_database = get_database_information()
@@ -59,6 +59,8 @@ async def create_user(user_info: UserIn):
 async def update_user_information(user_info:UserIn, email:str):
     # Step 0: Retrieve user information from fake database
     fake_database = get_database_information()
+
+    email = email.lower()
     current_user_info = fake_database.get(email) 
     if current_user_info is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -89,7 +91,7 @@ async def remove_user(email:str):
     fake_database = get_database_information()
     
 
-
+    email = email.lower()
     if fake_database.get(email) is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     else:
@@ -98,3 +100,14 @@ async def remove_user(email:str):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
+@router.get("/user/get/{email}", tags= ["user"], summary="Get User Information", description="Retrieve user information and confirm existence", response_model=UserOut)
+async def get_user(email:str):
+    fake_database = get_database_information()
+
+    email = email.lower()
+
+    if fake_database.get(email) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    else:
+        data = fake_database.get(email)
+        return UserOut(**data, email_address=email, message= None)

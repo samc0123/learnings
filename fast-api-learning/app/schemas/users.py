@@ -48,5 +48,5 @@ class UserIn(UserBase):
     }
 
 class UserOut(UserBase):
-    message: str = "User created successfully"
+    message: str | None = "User created successfully"
 
