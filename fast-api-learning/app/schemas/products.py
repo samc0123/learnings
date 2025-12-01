@@ -82,7 +82,7 @@ class ProductUpdate(BaseModel):
 
         
         
-    @model_validator
+    @model_validator(mode='after')
     def validate_inventory(self):
         if self.inventory_to_add is not None:
             return self.check_inventory(self.product_id,self.inventory_to_add,"add")

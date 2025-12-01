@@ -8,12 +8,12 @@ from decimal import Decimal
 
 
 class TransactionBase(BaseModel):
-    product_id: Annotated[uuid.UUID, Field(description="`id` object of product in system")]
+    
     quantity: Annotated[int, Field(gt=0, le= 1*10**4, description="Quantity of product in inventory")]
 
 class TransactionIn(TransactionBase):
     email: Annotated[EmailStr, Field(description="Email ID (and unique `email` identifier) of user making the transaction")]
-
+    product_id: Annotated[uuid.UUID, Field(description="`id` object of product in system")]
 
     model_config ={
         "json_schema_extra": {
