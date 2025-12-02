@@ -19,7 +19,7 @@ class TransactionIn(TransactionBase):
         "json_schema_extra": {
             "examples": [
                 {
-                   "product_id": "9f0c3e4b-2d8a-47b9-9c1f-0e8b52d3a4f2",
+                   "product_id": "a1012f76-8a85-4d7e-bcd5-dfdf09887f3e",
                     "quantity": 5, 
                     "email": "test@example.com"
                 }
