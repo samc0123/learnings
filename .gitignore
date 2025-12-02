@@ -7,6 +7,7 @@ __pycache__/
 fast-api-learning/app/models/fake_database_users.json
 fast-api-learning/app/models/fake_database_transactions.json
 fast-api-learning/app/models/fake_database_products.json
+fast-api-learning/app/models/fake_database_product_names.json
 
 # Ignore Secrets 
 fast-api-learning/app/schemas/secrets.env

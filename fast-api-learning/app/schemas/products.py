@@ -5,12 +5,13 @@ import uuid
 import json
 import os
 from fastapi import HTTPException, status
+from models.database_operations import get_database_information
 
 class Product(BaseModel):
-    id: Annotated[uuid.UUID, Field(default=uuid.uuid4(), description="`id` of the product")]
-    display_name: str = Field(min_length=1, description="Human Friendly Product Name")
-    product_description: str = Field(min_length=1, max_length= 240, description="Detailed description of the product")
-    unit_price: Annotated[Decimal, Field(strict=True, max_digits=10, decimal_places=2, description="Unit Price of product")]
+    id: Annotated[Optional[str], Field(default= None, description="`id` of the product")]
+    display_name: Annotated[str, Field(min_length=1, description="Human Friendly Product Name")]
+    product_description: Annotated[str, Field(min_length=1, max_length= 240, description="Detailed description of the product")]
+    unit_price: Annotated[Decimal, Field(max_digits=10, decimal_places=2, description="Unit Price of product")]
     quantity_in_stock: Annotated[int, Field(gt=0, le=1*10**4, default=1, description="Amount of product in stock")]
 
     model_config = {
@@ -19,7 +20,8 @@ class Product(BaseModel):
                 {
                    "display_name": "Cocoa Puffs",
                    "product_description":"A top-tier cereal, but not in the level of Cinnamon Toast Crunch",
-                   "unit_price":2.99
+                   "unit_price": "2.99", 
+                   "quantity_in_stock": 5
                 }
                 
             ]
@@ -27,9 +29,9 @@ class Product(BaseModel):
     }
 
 class ProductUpdate(BaseModel):
-    inventory_to_add: Annotated[Optional[int], Field(gt=0, le=1*10**4 - 1, description="Amount of product to add to inventory")]
-    inventory_to_remove: Annotated[Optional[int], Field(gt=0, le=1*10**4 - 1, description="Amount of product to remove from inventory.")]
-    product_id: Annotated[uuid.UUID, Field(description="`id` value of the product")]
+    inventory_to_add: Annotated[Optional[int], Field(default= 0, gt=-1, le=1*10**4 - 1, description="Amount of product to add to inventory")]
+    inventory_to_remove: Annotated[Optional[int], Field(default=0, gt=-1, le=1*10**4 - 1, description="Amount of product to remove from inventory.")]
+    product_id: Annotated[str, Field(description="`id` value of the product")]
 
     model_config = {
         "json_schema_extra": {
@@ -59,16 +61,16 @@ class ProductUpdate(BaseModel):
 
         try:
             with open(fake_database_path,'r') as f:
-                fake_database: dict = json.load(f)
+                fake_database = get_database_information(fake_database_path=fake_database_path)
 
                 match operation:
                     case "add":
-                        if fake_database.get(product_id) is not None and fake_database.get(product_id) + val <= 1*10**4:
+                        if fake_database.get(product_id) is not None and fake_database.get(product_id).get("quantity_in_stock") + val <= 1*10**4:
                             return val
                         else:
                             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="Either product doesn't exist or the value is too large to be stored in inventory. Please try again")
                     case "remove":
-                        if fake_database.get(product_id) is not None and fake_database.get(product_id) - val >= 0:
+                        if fake_database.get(product_id) is not None and fake_database.get(product_id).get("quantity_in_stock") - val >= 0:
                             return val
                         else:
                             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="Either product doesn't exist or there is not enough inventory. Please try again")
