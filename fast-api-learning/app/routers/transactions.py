@@ -3,6 +3,7 @@ from fastapi import APIRouter, status, HTTPException
 import os, json, uuid
 from schemas.transactions import TransactionIn, TransactionOut
 from models.database_operations import get_database_information, write_database_information
+from decimal import Decimal
 
 
 
@@ -29,7 +30,7 @@ async def create_transaction(data:TransactionIn):
     #TODO: Consolidate shared business logic between user get and transaction route
     fake_database_users = get_database_information(fake_database_path=os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'models', 'fake_database_users.json')))
 
-    email = email.lower()
+    email = data.email.lower()
     if fake_database_users.get(email) is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found. Please create user using `/user/create-user`")
     
@@ -45,10 +46,21 @@ async def create_transaction(data:TransactionIn):
     
     # Step 3: Decrease product inventory
     #TODO: Decrease of product inventory should be a shared function
-    stock = fake_database_products[data.product_id]
+    stock = fake_database_products[data.product_id].get("quantity_in_stock")
     stock -= data.quantity
     fake_database_products[data.product_id]["quantity_in_stock"] = stock
 
     write_database_information(database_information=fake_database_products, fake_database_path= os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'models', 'fake_database_products.json')))
 
-    return data
+    # Step 4: Build the return object 
+
+    product_name = fake_database_products[data.product_id].get("display_name")
+    unit_price = fake_database_products[data.product_id].get("unit_price")
+
+
+    return TransactionOut(
+        quantity=data.quantity,
+        product_name=product_name,
+        price=unit_price*data.quantity/100,
+        transaction_id=str(uuid.uuid4())
+    )

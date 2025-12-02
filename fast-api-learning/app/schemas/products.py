@@ -11,7 +11,7 @@ class Product(BaseModel):
     id: Annotated[Optional[str], Field(default= None, description="`id` of the product")]
     display_name: Annotated[str, Field(min_length=1, description="Human Friendly Product Name")]
     product_description: Annotated[str, Field(min_length=1, max_length= 240, description="Detailed description of the product")]
-    unit_price: Annotated[Decimal, Field(max_digits=10, decimal_places=2, description="Unit Price of product")]
+    unit_price: Annotated[int, Field(gt=1, description="Unit Price of product")]
     quantity_in_stock: Annotated[int, Field(gt=0, le=1*10**4, default=1, description="Amount of product in stock")]
 
     model_config = {
@@ -20,7 +20,7 @@ class Product(BaseModel):
                 {
                    "display_name": "Cocoa Puffs",
                    "product_description":"A top-tier cereal, but not in the level of Cinnamon Toast Crunch",
-                   "unit_price": "2.99", 
+                   "unit_price": "299", 
                    "quantity_in_stock": 5
                 }
                 
@@ -87,9 +87,9 @@ class ProductUpdate(BaseModel):
     @model_validator(mode='after')
     def validate_inventory(self):
         if self.inventory_to_add is not None:
-            return self.check_inventory(self.product_id,self.inventory_to_add,"add")
+            self.check_inventory(self.product_id,self.inventory_to_add,"add")
         if self.inventory_to_remove is not None:
-            return self.check_inventory(self.product_id,self.inventory_to_remove,"remove")
+            self.check_inventory(self.product_id,self.inventory_to_remove,"remove")
 
         return self
     

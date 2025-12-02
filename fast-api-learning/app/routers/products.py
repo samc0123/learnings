@@ -72,7 +72,6 @@ async def update_product_availability(data:ProductUpdate):
     '''
     #TODO: Make this route internal accessible only, for now fine as is 
 
-
     fake_database = get_database_information(fake_database_path=fake_database_path)
 
     # Validator already ran, so we first remove then add stock
@@ -82,6 +81,7 @@ async def update_product_availability(data:ProductUpdate):
     if data.inventory_to_add is not None:
         stock += data.inventory_to_add
     fake_database[data.product_id]["quantity_in_stock"] = stock
+    write_database_information(database_information=fake_database,fake_database_path=fake_database_path)
     
     return Product(**fake_database.get(data.product_id))
 

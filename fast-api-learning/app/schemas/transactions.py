@@ -13,7 +13,7 @@ class TransactionBase(BaseModel):
 
 class TransactionIn(TransactionBase):
     email: Annotated[EmailStr, Field(description="Email ID (and unique `email` identifier) of user making the transaction")]
-    product_id: Annotated[uuid.UUID, Field(description="`id` object of product in system")]
+    product_id: Annotated[str, Field(description="`id` object of product in system")]
 
     model_config ={
         "json_schema_extra": {
@@ -30,8 +30,8 @@ class TransactionIn(TransactionBase):
 
 class TransactionOut(TransactionBase):
     product_name: Annotated[str, Field(description="`display_name` attribute of the product")]
-    price: Annotated[Decimal, Field(gt=0.01, max_digits=10, decimal_places=2, description="Cost of the transaction to the user")]
-    transaction_id: Annotated[Optional[uuid.UUID], Field(description="`id` of the transaction stored in database")]
+    price: Annotated[int, Field(gt=1, description="Cost of the transaction to the user")]
+    transaction_id: Annotated[Optional[str], Field(description="`id` of the transaction stored in database")]
 
     model_config = {
         "json_schema_extra": {
